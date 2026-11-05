@@ -34,21 +34,44 @@ bool MaxHeap::contains(int value) const {
 }
 
 void MaxHeap::push(int value) {
-    (void)value;
-    throw std::logic_error("Student implementation required: push");
+    // Add to the end to keep the tree complete, then move it up into place.
+    data_.push_back(value);
+    heapifyUp(data_.size() - 1);
 }
 
 int MaxHeap::pop() {
-    throw std::logic_error("Student implementation required: pop");
+    if (empty()) {
+        throw std::logic_error("Heap is empty");
+    }
+
+    // Move the last element to the root, then sift it down to restore the heap.
+    const int maxValue = data_.front();
+    data_.front() = data_.back();
+    data_.pop_back();
+    if (!empty()) {
+        heapifyDown(0);
+    }
+    return maxValue;
 }
 
 void MaxHeap::buildHeap(const std::vector<int>& values) {
-    (void)values;
-    throw std::logic_error("Student implementation required: buildHeap");
+    data_ = values;
+
+    // Leaves are already valid heaps, so sift down every non-leaf node,
+    // starting from the last one and working back to the root.
+    for (std::size_t i = data_.size() / 2; i > 0; --i) {
+        heapifyDown(i - 1);
+    }
 }
 
 std::vector<int> MaxHeap::heapSort() {
-    throw std::logic_error("Student implementation required: heapSort");
+    // Pop from a copy so the heap itself is left unchanged.
+    MaxHeap working = *this;
+    std::vector<int> sorted(data_.size());
+    for (std::size_t i = sorted.size(); i > 0; --i) {
+        sorted[i - 1] = working.pop();
+    }
+    return sorted;
 }
 
 std::vector<int> MaxHeap::toVector() const {
@@ -71,13 +94,37 @@ std::size_t MaxHeap::rightChildIndex(std::size_t index) {
 }
 
 void MaxHeap::heapifyUp(std::size_t index) {
-    (void)index;
-    throw std::logic_error("Student implementation required: heapifyUp");
+    // Swap with the parent while this value is larger than it.
+    while (index > 0) {
+        const std::size_t parent = parentIndex(index);
+        if (data_[parent] >= data_[index]) {
+            break;
+        }
+        swap(data_[parent], data_[index]);
+        index = parent;
+    }
 }
 
 void MaxHeap::heapifyDown(std::size_t index) {
-    (void)index;
-    throw std::logic_error("Student implementation required: heapifyDown");
+    // Swap with the larger child while either child is bigger than this value.
+    const std::size_t count = data_.size();
+    while (true) {
+        const std::size_t left = leftChildIndex(index);
+        const std::size_t right = rightChildIndex(index);
+        std::size_t largest = index;
+
+        if (left < count && data_[left] > data_[largest]) {
+            largest = left;
+        }
+        if (right < count && data_[right] > data_[largest]) {
+            largest = right;
+        }
+        if (largest == index) {
+            break;
+        }
+        swap(data_[index], data_[largest]);
+        index = largest;
+    }
 }
 
 void MaxHeap::swap(int& a, int& b) {
